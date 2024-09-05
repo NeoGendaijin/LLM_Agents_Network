@@ -10,3 +10,5 @@ temp.py
 *.png
 !/experiment/input/**/*.png
 *.pyc
+/experiment/output/
+check.ipynb

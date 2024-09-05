@@ -7,7 +7,11 @@ from faker import Faker
 from lib.memory import Memory
 from langchain_community.llms import Ollama
 from langchain_openai import ChatOpenAI
+from dotenv import load_dotenv
 import random
+import os
+
+load_dotenv()
 
 class Agent:
     """Generative Agent"""
@@ -59,9 +63,9 @@ class Agent:
         )
 
         response = self.chain(prompt=prompt).invoke(kwargs)["text"].strip()
-        
+
         return response
-    
+
     @retry(wait=wait_random_exponential(min=1, max=60),
         stop=stop_after_attempt(6),
         retry=retry_if_exception_type(Exception),  # Customize based on the exceptions you expect

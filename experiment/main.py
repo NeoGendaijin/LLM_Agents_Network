@@ -25,8 +25,8 @@ dotenv.load_dotenv("../.env")
 hf_token = os.getenv("HF_TOKEN")
 
 NUM_NETWORKS = 3
-NUM_QUESTIONS = 100
-NUM_ROUNDS = 4
+NUM_QUESTIONS = 3
+NUM_ROUNDS = 1
 NUM_REPEATS = 3
 
 assert(NUM_NETWORKS <= 3)
@@ -48,7 +48,7 @@ async def test_mmlu(network_num: int, network_type: str, output_file: Path, bias
 
     # Iterate through each of the questions in the MMLU dataset
     for question_number, row in tqdm(dataset.iterrows(), total=NUM_QUESTIONS, desc="Questions"):
-        
+
         question = row["input"]
         option_a = row["A"]
         option_b = row["B"]
@@ -79,18 +79,18 @@ async def test_mmlu(network_num: int, network_type: str, output_file: Path, bias
 def assign_biases(network: Network, bias: Bias):
     if bias.location not in ["hub", "edge"]:
         raise ValueError("Invalid bias location. Please use one of 'hub', 'edge'.")
-    
+
     if bias.type not in ["correct", "incorrect"]:
         raise ValueError("Invalid bias type. Please use one of 'correct', 'incorrect'.")
-    
+
     if bias.location == "hub":
         degree_centrality = nx.degree_centrality(network.graph)
         biased_nodes = sorted(degree_centrality, key=degree_centrality.get, reverse=True)[:2]
-    
+
     elif bias.location == "edge":
         edge_nodes = [node for node in network.graph.nodes if network.graph.degree(node) == 1]
         biased_nodes = random.sample(edge_nodes, min(len(edge_nodes), 2))
-    
+
     for id in network.graph.nodes:
         network.dict[id].bias = bias.type if id in biased_nodes else "none"
 
@@ -147,7 +147,7 @@ async def ask_agents_and_write_responses(network, unbiased_agent_input, biased_a
             # Collect responses from neighbors
             for neighbor in neighbors:
                 neighbors_responses.append(f"Agent {neighbor}: {network.dict[neighbor].response}")
-            
+
             # Concatenate responses and ensure they fit within max_tokens
             neighbor_response = "\n".join(neighbors_responses)
             neighbor_response_encoded = network.encoding.encode(neighbor_response)
@@ -161,7 +161,7 @@ async def ask_agents_and_write_responses(network, unbiased_agent_input, biased_a
             [agent.id, round, question_number, agent.response, correct_response, agent.bias]
             for _, agent in network.dict.items()
         ]
-        
+
         await write_responses_to_csv(output_file, round_info)
 
 def make_single_line(filename: str):
@@ -217,7 +217,7 @@ async def main(model: str):
             output_file = output_path / Path(f"fully_connected/network_num_{network_num}_repeat_{repeat_num}.csv")
             output_file.parent.mkdir(parents=True, exist_ok=True)
             await test_mmlu(network_num=network_num, network_type=network_type, output_file=output_file)
-    
+
     # Test fully disconnected networks
     network_type = "fully_disconnected"
     for network_num in range(NUM_NETWORKS):
