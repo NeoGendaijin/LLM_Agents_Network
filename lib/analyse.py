@@ -141,7 +141,8 @@ def find_evolutions(parsed_agent_response : pd.DataFrame) -> pd.DataFrame :
         rounds.append(df.query(f'round == {round}'))
     
     # Then we join round n-1 and round n to record all changes
-    for round in range(1,len(rounds)):
+    for round in range(0,len(rounds)):
+        print("ANYTHING")
         prev, next = rounds[round-1], rounds[round]
         prev = prev.rename(columns={'correct' : 'prev_res', 'round': 'prev_round'})
         next = next.rename(columns={'correct' : 'cur_res'})
