@@ -29,7 +29,7 @@ NUM_NETWORKS = 3
 NUM_QUESTIONS = 3
 NUM_ROUNDS = 1
 NUM_REPEATS = 3
-COMPRESSION_RATE = 0.5
+COMPRESSION_RATE = 0.2
 
 assert(NUM_NETWORKS <= 3)
 
@@ -132,7 +132,7 @@ async def get_response(agent: Agent, input: str, round: int):
 async def ask_agents_and_write_responses(network, unbiased_agent_input, biased_agent_input, output_file, question_number, correct_response):
 
     # Compresser and Masking
-    compressor = TextCompressor(compression_rate=0.2)
+    compressor = TextCompressor(compression_rate=COMPRESSION_RATE)
 
     for round in range(NUM_ROUNDS):
         agent_responses = await asyncio.gather(*(
