@@ -7,6 +7,7 @@ sys.path.append(str(root_dir))
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 from lib.network import Network
 from lib.agent import Agent
+from lib.compression import TextCompressor
 from datasets import load_dataset
 from typing import List, Optional
 from tqdm import tqdm
@@ -28,6 +29,7 @@ NUM_NETWORKS = 3
 NUM_QUESTIONS = 3
 NUM_ROUNDS = 1
 NUM_REPEATS = 3
+COMPRESSION_RATE = 0.5
 
 assert(NUM_NETWORKS <= 3)
 
@@ -128,6 +130,10 @@ async def get_response(agent: Agent, input: str, round: int):
     return agent.id, response.replace("|", " ")
 
 async def ask_agents_and_write_responses(network, unbiased_agent_input, biased_agent_input, output_file, question_number, correct_response):
+
+    # Compresser and Masking
+    compressor = TextCompressor(compression_rate=0.2)
+
     for round in range(NUM_ROUNDS):
         agent_responses = await asyncio.gather(*(
             get_response(agent, biased_agent_input if agent.bias != "none" else unbiased_agent_input, round)
@@ -146,7 +152,7 @@ async def ask_agents_and_write_responses(network, unbiased_agent_input, biased_a
 
             # Collect responses from neighbors
             for neighbor in neighbors:
-                neighbors_responses.append(f"Agent {neighbor}: {network.dict[neighbor].response}")
+                neighbors_responses.append(f"Agent {neighbor}: {compressor.compress(network.dict[neighbor].response)}")
 
             # Concatenate responses and ensure they fit within max_tokens
             neighbor_response = "\n".join(neighbors_responses)
