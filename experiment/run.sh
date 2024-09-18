@@ -32,3 +32,4 @@ echo "analysis.py is running in the background. Output is being written to $LOG_
 
 # Wait for analysis.py to finish
 wait $ANALYSIS_PID
+echo "main.py and analysis.py have finished running. Output is written to $LOG_DIR/analysis.log"

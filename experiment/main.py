@@ -29,7 +29,7 @@ NUM_NETWORKS = 3
 NUM_QUESTIONS = 3
 NUM_ROUNDS = 2
 NUM_REPEATS = 2
-COMPRESSION_RATE = 0.2
+COMPRESSION_RATE = 0.5
 
 assert(NUM_NETWORKS <= 3)
 
@@ -152,6 +152,7 @@ async def ask_agents_and_write_responses(network, unbiased_agent_input, biased_a
 
             # Collect responses from neighbors
             for neighbor in neighbors:
+                print("Called:", compressor.compress(network.dict[neighbor].response))
                 neighbors_responses.append(f"Agent {neighbor}: {compressor.compress(network.dict[neighbor].response)}")
 
             # Concatenate responses and ensure they fit within max_tokens
