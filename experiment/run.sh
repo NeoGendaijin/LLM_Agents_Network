@@ -1,11 +1,14 @@
 #!/bin/bash
 
+# デフォルトの圧縮率のリスト
+COMPRESSION_RATES=(0.3 0.5 0.7)
+
 # Directory for logs
 LOG_DIR="output/logs"
 
 # Create the logs directory if it doesn't exist
 if [ ! -d "$LOG_DIR" ]; then
-    mkdir -p $LOG_DIR
+    mkdir -p "$LOG_DIR"
     echo "Created directory $LOG_DIR for logs."
 fi
 
@@ -17,19 +20,17 @@ else
     echo "Files found in /input directory. Skipping generate_networks.py."
 fi
 
-# Run the main.py script in the background
-nohup python main.py > $LOG_DIR/main.log 2>&1 &
-MAIN_PID=$!
-echo "main.py is running in the background. Output is being written to $LOG_DIR/main.log"
+# Iterate over each compression rate and run main.py
+for RATE in "${COMPRESSION_RATES[@]}"; do
+    LOG_FILE="$LOG_DIR/main_compression_rate_${RATE}.log"
+    echo "Running main.py with compression rate $RATE. Logging to $LOG_FILE"
 
-# Wait for main.py to finish
-wait $MAIN_PID
+    # Run main.py with the specified compression rate in the background
+    nohup python main.py --compression_rate "$RATE" > "$LOG_FILE" 2>&1 &
+    MAIN_PID=$!
+    echo "main.py (PID: $MAIN_PID) is running with compression rate $RATE. Output is being written to $LOG_FILE"
+done
 
-# Run the analysis.py script in the background
-nohup python analysis.py > $LOG_DIR/analysis.log 2>&1 &
-ANALYSIS_PID=$!
-echo "analysis.py is running in the background. Output is being written to $LOG_DIR/analysis.log"
-
-# Wait for analysis.py to finish
-wait $ANALYSIS_PID
-echo "main.py and analysis.py have finished running. Output is written to $LOG_DIR/analysis.log"
+# Wait for all background processes to finish
+wait
+echo "All main.py processes have finished."

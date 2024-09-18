@@ -28,8 +28,8 @@ hf_token = os.getenv("HF_TOKEN")
 NUM_NETWORKS = 3
 NUM_QUESTIONS = 3
 NUM_ROUNDS = 2
-NUM_REPEATS = 1
-#COMPRESSION_RATE = 0.5
+NUM_REPEATS = 2
+COMPRESSION_RATE = 0.5
 
 assert(NUM_NETWORKS <= 3)
 
@@ -39,7 +39,7 @@ class Bias:
         self.type = type
         self.location = location
 
-async def test_mmlu(network_num: int, network_type: str, output_file: Path, compression_rate: float, bias: Optional[Bias] = None):
+async def test_mmlu(network_num: int, network_type: str, output_file: Path, bias: Optional[Bias] = None):
     """ Test agent networks with the MMLU dataset. """
     assert network_type in ["scale_free", "random", "fully_connected", "fully_disconnected"]
     assert bias is None or isinstance(bias, Bias)
@@ -73,7 +73,7 @@ async def test_mmlu(network_num: int, network_type: str, output_file: Path, comp
             biased_agent_input = f"{question}\nExplain how the answer could be ({biased_reponse[0]}) {biased_reponse[1]}. Finish the sentence with therefore the answer is ({biased_reponse[0]})."
             assign_biases(network=network, bias=bias)
 
-        await ask_agents_and_write_responses(network, unbiased_agent_input=unbiased_agent_input, biased_agent_input=biased_agent_input , output_file=output_file, question_number=question_number, correct_response=correct_response, compression_rate=compression_rate)
+        await ask_agents_and_write_responses(network, unbiased_agent_input=unbiased_agent_input, biased_agent_input=biased_agent_input , output_file=output_file, question_number=question_number, correct_response=correct_response)
 
         # Sleep as to not overload the OpenAI API
         time.sleep(0.25)
@@ -129,32 +129,10 @@ async def get_response(agent: Agent, input: str, round: int):
 
     return agent.id, response.replace("|", " ")
 
-def split_response(response: str):
-    """
-    response を reasoning と answer に分割します。
-    例: "reasoningの部分... Therefore, the correct answer is (C) 50." -> ("reasoningの部分...", "(C) 50")
-    """
-    # (A|B|C|D) に続く数字をキャプチャ
-    pattern = re.compile(r'\(([ABCD])\)\s*(\d+)', re.IGNORECASE)
+async def ask_agents_and_write_responses(network, unbiased_agent_input, biased_agent_input, output_file, question_number, correct_response):
 
-    # すべてのマッチを取得
-    matches = list(pattern.finditer(response))
-
-    if matches:
-        # 最後のマッチを取得
-        last_match = matches[-1]
-        answer = f'({last_match.group(1)}) {last_match.group(2)}'
-        # reasoning はマッチの開始位置までの部分
-        reasoning = response[:last_match.start()].strip()
-        return reasoning, answer
-    else:
-        # マッチしない場合は全体を reasoning として扱う
-        return response, ''
-
-async def ask_agents_and_write_responses(network, unbiased_agent_input, biased_agent_input, output_file, question_number, correct_response, compression_rate):
-
-    # Create a text compressor with the given compression rate
-    compressor = TextCompressor(compression_rate=compression_rate)
+    # Compresser and Masking
+    compressor = TextCompressor(compression_rate=COMPRESSION_RATE)
 
     for round in range(NUM_ROUNDS):
         agent_responses = await asyncio.gather(*(
@@ -174,10 +152,8 @@ async def ask_agents_and_write_responses(network, unbiased_agent_input, biased_a
 
             # Collect responses from neighbors
             for neighbor in neighbors:
-                # print("Called:", compressor.compress(network.dict[neighbor].response))
-                reasoning, answer = split_response(network.dict[neighbor].response)
-                compressed_reasoning = compressor.compress(reasoning)
-                neighbors_responses.append(f"Agent {neighbor}: {compressed_reasoning}")
+                print("Called:", compressor.compress(network.dict[neighbor].response))
+                neighbors_responses.append(f"Agent {neighbor}: {compressor.compress(network.dict[neighbor].response)}")
 
             # Concatenate responses and ensure they fit within max_tokens
             neighbor_response = "\n".join(neighbors_responses)
@@ -214,32 +190,24 @@ def make_single_line(filename: str):
     with open(filename, 'w', encoding='utf-8') as outfile:
         outfile.write(modified_content)
 
-async def main(model: str, compression_rate: float):
+async def main(model: str):
     output_path = Path("output/agent_responses")
     output_path.mkdir(parents=True, exist_ok=True)
 
     start_time = time.time()
 
-    # # Test scale-free networks with different types of biases
-    # network_type = "scale_free"
-    # biases: List[Bias] = [Bias("unbiased", "none"), Bias("correct", "hub"), Bias("incorrect", "hub"), Bias("correct", "edge"), Bias("incorrect", "edge")]
-    # for network_num in range(NUM_NETWORKS):
-    #     for bias in biases:
-    #         for repeat_num in range(NUM_REPEATS):
-    #             if bias.type == "unbiased":
-    #                 output_file: Path = output_path / Path(f"scale_free_{bias.type}/network_num_{network_num}_repeat_{repeat_num}.csv")
-    #             else:
-    #                 output_file: Path = output_path / Path(f"scale_free_{bias.type}_{bias.location}/network_num_{network_num}_repeat_{repeat_num}.csv")
-    #             output_file.parent.mkdir(parents=True, exist_ok=True)
-    #             await test_mmlu(network_num=network_num, network_type=network_type, output_file=output_file, bias=bias)
-
-    # Test scale_free networks
+    # Test scale-free networks with different types of biases
     network_type = "scale_free"
+    biases: List[Bias] = [Bias("unbiased", "none"), Bias("correct", "hub"), Bias("incorrect", "hub"), Bias("correct", "edge"), Bias("incorrect", "edge")]
     for network_num in range(NUM_NETWORKS):
-        for repeat_num in range(NUM_REPEATS):
-            output_file = output_path / Path(f"scale_free/network_num_{network_num}_repeat_{repeat_num}.csv")
-            output_file.parent.mkdir(parents=True, exist_ok=True)
-            await test_mmlu(network_num=network_num, network_type=network_type, output_file=output_file, compression_rate=compression_rate)
+        for bias in biases:
+            for repeat_num in range(NUM_REPEATS):
+                if bias.type == "unbiased":
+                    output_file: Path = output_path / Path(f"scale_free_{bias.type}/network_num_{network_num}_repeat_{repeat_num}.csv")
+                else:
+                    output_file: Path = output_path / Path(f"scale_free_{bias.type}_{bias.location}/network_num_{network_num}_repeat_{repeat_num}.csv")
+                output_file.parent.mkdir(parents=True, exist_ok=True)
+                await test_mmlu(network_num=network_num, network_type=network_type, output_file=output_file, bias=bias)
 
     # Test random networks
     network_type = "random"
@@ -247,7 +215,7 @@ async def main(model: str, compression_rate: float):
         for repeat_num in range(NUM_REPEATS):
             output_file = output_path / Path(f"random/network_num_{network_num}_repeat_{repeat_num}.csv")
             output_file.parent.mkdir(parents=True, exist_ok=True)
-            await test_mmlu(network_num=network_num, network_type=network_type, output_file=output_file, compression_rate=compression_rate)
+            await test_mmlu(network_num=network_num, network_type=network_type, output_file=output_file)
 
     # Test fully connected networks
     network_type = "fully_connected"
@@ -255,7 +223,7 @@ async def main(model: str, compression_rate: float):
         for repeat_num in range(NUM_REPEATS):
             output_file = output_path / Path(f"fully_connected/network_num_{network_num}_repeat_{repeat_num}.csv")
             output_file.parent.mkdir(parents=True, exist_ok=True)
-            await test_mmlu(network_num=network_num, network_type=network_type, output_file=output_file, compression_rate=compression_rate)
+            await test_mmlu(network_num=network_num, network_type=network_type, output_file=output_file)
 
     # Test fully disconnected networks
     network_type = "fully_disconnected"
@@ -263,7 +231,7 @@ async def main(model: str, compression_rate: float):
         for repeat_num in range(NUM_REPEATS):
             output_file = output_path / Path(f"fully_disconnected/network_num_{network_num}_repeat_{repeat_num}.csv")
             output_file.parent.mkdir(parents=True, exist_ok=True)
-            await test_mmlu(network_num=network_num, network_type=network_type, output_file=output_file, compression_rate=compression_rate)
+            await test_mmlu(network_num=network_num, network_type=network_type, output_file=output_file)
 
     end_time = time.time()
     print(f"Time taken: {(end_time - start_time) / 60} minutes")
@@ -275,22 +243,8 @@ async def main(model: str, compression_rate: float):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process some integers.")
-    parser.add_argument(
-        "--model",
-        type=str,
-        choices=['gpt-3.5-turbo', 'mistral'],
-        default='gpt-3.5-turbo',
-        help="The model to run the experiment with."
-    )
-    parser.add_argument(
-        "--compression_rate",
-        type=float,
-        default=0.5,
-        help="The compression rate to apply to the reasoning part."
-    )
+    parser.add_argument("--model", type=str, choices=['gpt-3.5-turbo', 'mistral'], default='gpt-3.5-turbo', help="The model to run the experiment with.")
     args = parser.parse_args()
     model = args.model
-    compression_rate = args.compression_rate  # 追加
 
-    asyncio.run(main(model, compression_rate))  # 引数を追加
-
+    asyncio.run(main(model))
