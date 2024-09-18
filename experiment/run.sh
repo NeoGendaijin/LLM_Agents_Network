@@ -50,11 +50,6 @@ for RATE in "${COMPRESSION_RATES[@]}"; do
     # フォーマットした圧縮率をディレクトリ名に使用（小数点を取り除く）
     FORMATTED_RATE=$(echo "$RATE" | tr -d '.')
 
-    # Define output and logs directories
-    OUTPUT_DIR="outputs/output_${FORMATTED_RATE}/agent_responses"
-    LOG_DIR="outputs/output_${FORMATTED_RATE}/logs"
-    ANALYSIS_DIR="outputs/output_${FORMATTED_RATE}/analysis"
-
     # Run analysis.py for the current compression rate
     echo "Running analysis.py for compression rate $RATE"
     python analysis.py --compression_rate "$RATE" --root_dir "$(pwd)"
