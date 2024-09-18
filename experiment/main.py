@@ -215,23 +215,10 @@ def make_single_line(filename: str):
         outfile.write(modified_content)
 
 async def main(model: str, compression_rate: float):
-    output_path = Path("output/agent_responses")
+    output_path = Path(f"outputs/output_{str(compression_rate).replace('.', '')}/agent_responses")
     output_path.mkdir(parents=True, exist_ok=True)
 
     start_time = time.time()
-
-    # # Test scale-free networks with different types of biases
-    # network_type = "scale_free"
-    # biases: List[Bias] = [Bias("unbiased", "none"), Bias("correct", "hub"), Bias("incorrect", "hub"), Bias("correct", "edge"), Bias("incorrect", "edge")]
-    # for network_num in range(NUM_NETWORKS):
-    #     for bias in biases:
-    #         for repeat_num in range(NUM_REPEATS):
-    #             if bias.type == "unbiased":
-    #                 output_file: Path = output_path / Path(f"scale_free_{bias.type}/network_num_{network_num}_repeat_{repeat_num}.csv")
-    #             else:
-    #                 output_file: Path = output_path / Path(f"scale_free_{bias.type}_{bias.location}/network_num_{network_num}_repeat_{repeat_num}.csv")
-    #             output_file.parent.mkdir(parents=True, exist_ok=True)
-    #             await test_mmlu(network_num=network_num, network_type=network_type, output_file=output_file, bias=bias)
 
     # Test scale_free networks
     network_type = "scale_free"
@@ -269,7 +256,7 @@ async def main(model: str, compression_rate: float):
     print(f"Time taken: {(end_time - start_time) / 60} minutes")
 
     # Run post-process on csv files
-    csv_files = glob.glob('output/**/*.csv', recursive=True)
+    csv_files = glob.glob(f"outputs/output_{str(compression_rate).replace('.', '')}/**/*.csv", recursive=True)
     for file in csv_files:
         make_single_line(file)
 

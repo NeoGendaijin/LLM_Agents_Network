@@ -33,7 +33,7 @@ def analyse_simu(agent_response: Path,
     '''
 
     # Parse the file name
-    num_agents, graph_type, network_bias = parse_file_path(agent_response)
+    num_agents, graph_type = parse_file_path(agent_response)
 
     # Create the final result directories
     analyse_dir.mkdir(parents=True, exist_ok=True)
@@ -47,25 +47,25 @@ def analyse_simu(agent_response: Path,
     Path(results_path).mkdir(exist_ok=True)
 
     # Accuracy
-    visu.accuracy_repartition(network_responses_df, f'{network_bias}', num_agents, results_path)
+    visu.accuracy_repartition(network_responses_df, f'{graph_type}', num_agents, results_path)
 
     # Consensus
-    consensus_df = calculate_consensus_per_question(agent_parsed_resp, network_responses_df)
-    visu.consensus_repartition(consensus_df, results_path, graph_colors, graph_names)
+    #consensus_df = calculate_consensus_per_question(agent_parsed_resp, network_responses_df)
+    #visu.consensus_repartition(consensus_df, results_path, graph_colors, graph_names)
 
     # Opinion changes
     opinion_changes = find_evolutions(agent_parsed_resp)
-    visu.opinion_changes(opinion_changes, f"{graph_type}_{network_bias}", results_path, graph_names, graph_colors)
+    visu.opinion_changes(opinion_changes, f"{graph_type}", results_path, graph_names, graph_colors)
 
     # Neighbors
     calculate_proportion_neighbours_correct(agent_parsed_resp, graph_type, results_path)
 
     # Gifs
     if gifs:
-        graphml_path = Path(f'experiment/data/{graph_type}_{network_bias}/{num_agents}.graphml')
+        graphml_path = Path(f'experiment/data/{graph_type}/{num_agents}.graphml')
         visu.created_gifs(agent_parsed_resp, graphml_path, results_path / f'{agent_response.name}/gifs/')
 
-    return graph_type, num_agents, network_bias
+    return graph_type, num_agents
 
 def parse_file_path(dir_path : Path) -> Tuple[int, str, str]:
     '''
@@ -77,7 +77,6 @@ def parse_file_path(dir_path : Path) -> Tuple[int, str, str]:
         Returns:
             number of agent: The number of agent in the simulation.
             graph_type: The type of graph used in the simulation.
-            network_bias: The type of network bias used in the simulation.
     '''
     num_agents = 25 # fixed for this paper
 
@@ -86,19 +85,7 @@ def parse_file_path(dir_path : Path) -> Tuple[int, str, str]:
     else:
         graph_type = dir_path.name
 
-    network_bias = "unbiased"
-    if 'scale_free' in dir_path.name:
-        network_bias = "unbiased"
-        if "incorrect" in dir_path.name and "hub" in dir_path.name:
-            network_bias = "incorrect_hub"
-        elif "incorrect" in dir_path.name and "edge" in dir_path.name:
-            network_bias = "incorrect_edge"
-        elif "correct" in dir_path.name and "hub" in dir_path.name:
-            network_bias = "correct_hub"
-        elif "correct" in dir_path.name and "edge" in dir_path.name:
-            network_bias = "correct_edge"
-
-    return num_agents, graph_type, network_bias
+    return num_agents, graph_type
 
 def rename_evolution(prev_correct, next_correct):
     """
