@@ -11,9 +11,10 @@ else
     echo "Files found in /input directory. Skipping generate_networks.py"
 fi
 
+PIDS=()
+
 # Iterate over each compression rate and run main.py and analysis.py
 for RATE in "${COMPRESSION_RATES[@]}"; do
-    # フォーマットした圧縮率をディレクトリ名に使用（小数点を取り除く）
     FORMATTED_RATE=$(echo "$RATE" | tr -d '.')
 
     # Define output and logs directories
@@ -22,8 +23,8 @@ for RATE in "${COMPRESSION_RATES[@]}"; do
     ANALYSIS_DIR="outputs/output_${FORMATTED_RATE}/analysis"
 
     # Create output and log directories
-    mkdir -p "$OUTPUT_DIR" "$LOG_DIR" "$ANALYSIS_DIR"
-    echo "Created directories $OUTPUT_DIR, $LOG_DIR, and $ANALYSIS_DIR"
+    mkdir -p "$OUTPUT_DIR" "$LOG_DIR"
+    echo "Created directories $OUTPUT_DIR and $LOG_DIR"
 
     # Define log file inside the specific logs directory
     LOG_FILE="$LOG_DIR/main.log"
@@ -34,14 +35,12 @@ for RATE in "${COMPRESSION_RATES[@]}"; do
     MAIN_PID=$!
     echo "main.py (PID: $MAIN_PID) is running with compression rate $RATE. Output is being written to $LOG_FILE"
 
-    # Wait for main.py to finish before running analysis.py
-    wait $MAIN_PID
-    echo "main.py with compression rate $RATE has finished."
+    PIDS+=($MAIN_PID)
+done
 
-    # Run analysis.py for the current compression rate
-    echo "Running analysis.py for compression rate $RATE"
-    python analysis.py --compression_rate "$RATE" --root_dir "$(pwd)"
-    echo "analysis.py for compression rate $RATE has finished."
+for PID in "${PIDS[@]}"; do
+    wait $PID
+    echo "Process with PID $PID has finished."
 done
 
 echo "All main.py processes have finished."
