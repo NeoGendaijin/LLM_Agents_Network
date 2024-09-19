@@ -31,7 +31,7 @@ class Agent:
         elif "gpt-4o-mini" in model:
             llm = ChatOpenAI(
                 model="gpt-4o-mini",
-                max_tokens=200,
+                max_tokens=2000,
                 request_timeout=60,
                 max_retries=5
             )

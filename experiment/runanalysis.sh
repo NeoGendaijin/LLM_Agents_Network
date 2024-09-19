@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # デフォルトの圧縮率のリスト
-COMPRESSION_RATES=(0.3 0.5 0.7)
+COMPRESSION_RATES=(0.1 0.3 0.5 0.7 0.9)
 
 # Check if there are files in /input (or deeper)
 if [ -z "$(find input -type f)" ]; then
