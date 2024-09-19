@@ -27,9 +27,9 @@ dotenv.load_dotenv("../.env")
 hf_token = os.getenv("HF_TOKEN")
 
 NUM_NETWORKS = 3
-NUM_QUESTIONS = 1
-NUM_ROUNDS = 3
-NUM_REPEATS = 1
+NUM_QUESTIONS = 5
+NUM_ROUNDS = 4
+NUM_REPEATS = 2
 
 assert(NUM_NETWORKS <= 3)
 
