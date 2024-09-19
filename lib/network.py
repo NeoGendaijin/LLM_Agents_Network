@@ -17,13 +17,17 @@ class Network:
             encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
             token_buffer = 1000
             max_tokens = 16385 - token_buffer # max tokens for gpt-3.5-turbo
+        elif "gpt-4o-mini" in model:
+            encoding = tiktoken.encoding_for_model("gpt-4o-mini")
+            token_buffer = 1000
+            max_tokens = 16385 - token_buffer # max tokens for gpt-4o-mini
 
         elif "mistral" in model:
             from transformers import AutoTokenizer
             encoding = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-v0.1")
             token_buffer = 1000
             max_tokens = 8192 - token_buffer
-    
+
         (graph, dict) = self._load_agents(model=model, graph_location=path)
 
         self.graph = graph

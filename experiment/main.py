@@ -26,12 +26,12 @@ import dotenv
 dotenv.load_dotenv("../.env")
 hf_token = os.getenv("HF_TOKEN")
 
-NUM_NETWORKS = 5
-NUM_QUESTIONS = 5
+NUM_NETWORKS = 3
+NUM_QUESTIONS = 1
 NUM_ROUNDS = 3
 NUM_REPEATS = 1
 
-#assert(NUM_NETWORKS <= 3)
+assert(NUM_NETWORKS <= 3)
 
 class Bias:
     """Bias"""
@@ -274,8 +274,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model",
         type=str,
-        choices=['gpt-3.5-turbo', 'mistral'],
-        default='gpt-3.5-turbo',
+        choices=['gpt-4o-mini', 'gpt-3.5-turbo', 'mistral'],
+        #default='gpt-3.5-turbo',
+        default='gpt-4o-mini',
         help="The model to run the experiment with."
     )
     parser.add_argument(

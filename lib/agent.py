@@ -28,6 +28,13 @@ class Agent:
                 request_timeout=60,
                 max_retries=5
             )
+        elif "gpt-4o-mini" in model:
+            llm = ChatOpenAI(
+                model="gpt-4o-mini",
+                max_tokens=200,
+                request_timeout=60,
+                max_retries=5
+            )
         else:
             raise ValueError(f"Unknown model: {model}")
 
