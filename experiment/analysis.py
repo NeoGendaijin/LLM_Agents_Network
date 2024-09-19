@@ -45,17 +45,13 @@ def main(agent_responses_path: str, output_analysis_path: str):
                             graph_names=GRAPH_NAMES,
                             graph_colors=GRAPH_COLORS,
                             gifs = False)
-    visu.accuracy_vs_network(f"{RESULTS_PATH}**/accuracy_per_network_and_repeat.csv",
-                          RESULTS_PATH, GRAPH_NAMES, GRAPH_COLORS)
+    visu.accuracy_vs_network(f"{RESULTS_PATH}**/accuracy_per_network_and_repeat.csv", RESULTS_PATH, GRAPH_NAMES, GRAPH_COLORS)
 
-    visu.accuracy_vs_round(f"{RESULTS_PATH}**/accuracy_per_round.csv",
-                           RESULTS_PATH, GRAPH_NAMES, GRAPH_COLORS)
+    visu.accuracy_vs_round(f"{RESULTS_PATH}**/accuracy_per_round.csv", RESULTS_PATH, GRAPH_NAMES, GRAPH_COLORS)
 
-    visu.correct_prop_vs_network(f"{RESULTS_PATH}**/consensus.csv",
-                                 RESULTS_PATH, GRAPH_NAMES, GRAPH_COLORS)
+    visu.correct_prop_vs_network(f"{RESULTS_PATH}**/consensus.csv", RESULTS_PATH, GRAPH_NAMES, GRAPH_COLORS)
 
-    visu.consensus_table(f"{RESULTS_PATH}**/consensus.csv",
-                           RESULTS_PATH)
+    visu.consensus_table(f"{RESULTS_PATH}**/consensus.csv", RESULTS_PATH)
 
     analyse.calculate_cost_per_round(f"{RESULTS_PATH}/cost_per_round.csv")
 

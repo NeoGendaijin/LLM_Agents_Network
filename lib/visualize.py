@@ -407,7 +407,7 @@ def correct_prop_vs_network(input_file_path: str, output_dir: str, human_readabl
         results_df = pd.concat([results_df if not results_df.empty else None, pd.DataFrame({'network': [Path(csv_file).parent.name], "correct_prop": mean, 'standard_error': sem})], ignore_index=True)
 
     results_path = Path(output_dir) / "correct_prop_and_network_type.csv"
-    custom_order = ['fully_connected','fully_disconnected', 'random', 'scale_free_unbiased', 'scale_free_incorrect_hub', 'scale_free_incorrect_edge', 'scale_free_correct_hub', 'scale_free_correct_edge']
+    custom_order = ['fully_connected','fully_disconnected', 'random', 'scale_free']
     results_df['network_order'] = results_df['network'].apply(lambda x: custom_order.index(x))
     results_df = results_df.sort_values(by='network_order')
     results_df.to_csv(results_path, index=False)

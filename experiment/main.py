@@ -11,6 +11,7 @@ from lib.compression import TextCompressor
 from datasets import load_dataset
 from typing import List, Optional
 from tqdm import tqdm
+import pandas as pd
 import networkx as nx
 import argparse
 import aiofiles
@@ -25,11 +26,10 @@ import dotenv
 dotenv.load_dotenv("../.env")
 hf_token = os.getenv("HF_TOKEN")
 
-NUM_NETWORKS = 3
-NUM_QUESTIONS = 3
-NUM_ROUNDS = 2
+NUM_NETWORKS = 5
+NUM_QUESTIONS = 5
+NUM_ROUNDS = 3
 NUM_REPEATS = 1
-#COMPRESSION_RATE = 0.5
 
 assert(NUM_NETWORKS <= 3)
 
@@ -39,13 +39,22 @@ class Bias:
         self.type = type
         self.location = location
 
+def reshape_dataset(df):
+    df = df.rename(columns={'question': 'input'})
+    df[['A', 'B', 'C', 'D']] = pd.DataFrame(df['choices'].tolist(), index=df.index)
+    df['target'] = df['answer'].apply(lambda x: chr(65 + x))
+    dataset1_like = df[['input', 'A', 'B', 'C', 'D', 'target']]
+    return dataset1_like
+
 async def test_mmlu(network_num: int, network_type: str, output_file: Path, compression_rate: float, bias: Optional[Bias] = None):
     """ Test agent networks with the MMLU dataset. """
     assert network_type in ["scale_free", "random", "fully_connected", "fully_disconnected"]
     assert bias is None or isinstance(bias, Bias)
 
     # Load the MMLU dataset
-    dataset = load_dataset("lukaemon/mmlu", "high_school_mathematics", revision="3b5949d968d1fbc3facce39769ba00aa13404ffc", trust_remote_code=True, split="test", token = hf_token).to_pandas()
+    #dataset = load_dataset("lukaemon/mmlu", "high_school_mathematics", revision="3b5949d968d1fbc3facce39769ba00aa13404ffc", trust_remote_code=True, split="test", token = hf_token).to_pandas()
+    dataset = load_dataset("cais/mmlu", "abstract_algebra", split="test", token = hf_token).to_pandas()
+    dataset = reshape_dataset(dataset)
     dataset = dataset.head(NUM_QUESTIONS)
 
     # Iterate through each of the questions in the MMLU dataset
