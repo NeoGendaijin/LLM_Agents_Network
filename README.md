@@ -1,4 +1,4 @@
-#Impact of Communication Masking on Problem Solving in LLM Agent Networks
+# Impact of Communication Masking on Problem Solving in LLM Agent Networks
 
 This repository contains the code and experiments for the paper:
 
