@@ -1,36 +1,83 @@
-# 🕸️ Problem Solving in Language Model Networks
-This is a forked branch based on https://github.com/tsukuba-websci/PSiLMN. Featured to investigate the relation information compression and network of LLM agents.
-The original code is based on the paper "Problem Solving in Language Model Networks" which was accepted at the [2024 Conference on Artificial Life](https://2024.alife.org/).
+#Impact of Communication Masking on Problem Solving in LLM Agent Networks
 
-## Running the Experiment
+This repository contains the code and experiments for the paper:
 
-### Prerequisites
+**"Impact of Communication Masking on Problem Solving in LLM Agent Networks"**
 
-- Create an OpenAI API key for using GPT-3.5-Turbo.
-- Create a Hugging Face token for downloading MMLU dataset from Hugging Face.
+In this study, we simulate a network of Large Language Model (LLM) agents communicating using natural language. By introducing communication masking—selectively masking words during agent interactions—we investigate how information bottlenecks affect collective problem-solving abilities across different network topologies.
 
-### Setup
+Our findings highlight the critical role of network structure in maintaining effective collaboration under communication constraints. Certain network configurations demonstrate robustness to masking, while others experience significant performance degradation. These insights have implications for designing resilient distributed systems and artificial intelligence applications where information flow may be limited or disrupted.
 
-Create a `.env` file in the root directory and add your OpenAI API key and Hugging Face token:
+## Introduction
+
+The advent of Large Language Models (LLMs) has revolutionized artificial intelligence by enabling machines to understand and generate human-like language with remarkable proficiency. Integrating LLMs into multi-agent systems allows for complex interactions where agents communicate to achieve collective goals.
+
+However, communication constraints—such as network limitations or deliberate information masking—can significantly impact the efficiency of these systems. This repository provides the code to simulate LLM agent networks under varying levels of communication masking and network topologies, allowing for the exploration of how information bottlenecks influence collective intelligence.
+
+For a detailed explanation of the methodology and findings, please refer to the accompanying paper.
+
+## Prerequisites
+
+- **Python 3.8** or higher
+- An **OpenAI API key** for accessing GPT-3.5-Turbo or GPT-4 models
+- A **Hugging Face token** for downloading the MMLU dataset
+
+## Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/NeoGendaijin/LLM_Agents_Network.git
+   cd LLM_Agents_Network
+   ```
+
+2. **Set up environment variables**
+
+   Create a `.env` file in the root directory and add your OpenAI API key and Hugging Face token:
+
+   ```env
+   OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>
+   HF_TOKEN=<YOUR_HUGGING_FACE_TOKEN>
+   ```
+
+3. **Install required packages**
+
+   If you prefer using `pip`, you can install the packages directly:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Running the Experiments
+
+Navigate to the `experiment` directory and run the `run.sh` script:
+
+```bash
+cd experiment
+./runmain.sh
 ```
-OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>
-HF_TOKEN=<YOUR_HF_TOEN>
-```
-Install the required Python packages with
-```
-poetry install
-```
-Navigate to the `experiment` directory and run the `run.sh` script.
 
-```
-./run.sh
+```bash
+cd experiment
+./runanalysis.sh
 ```
 
-The `run.sh` script runs the experiment pipeline which contains three main steps:
-1. Genrating the networks to use in the agent problem solving (`generate_networks.py`).
-2. Running the agent problem solving and communication (`main.py`).
-3. Analysing the results and generating figures (`analysis.py`).
+This script executes the experiment pipeline, which includes:
 
-### Data Availability
+1. **Generating Networks**: Creates the network topologies used in the simulations (`generate_networks.py`).
+2. **Simulating Agent Interactions**: Runs the multi-agent simulations with communication masking (`main.py`).
+3. **Analyzing Results**: Processes the simulation data and generates figures (`analysis.py`).
 
-The specific scale-free and random networks, as well as the agents responses in each round of debate are available [here](https://drive.google.com/drive/folders/1jFuxITHWjQBRGX_b6VdtgHRYNU5lZKBU?usp=drive_link).
+### Notes
+
+- Ensure that your OpenAI API usage complies with their terms and conditions.
+- The simulations may take some time to run, depending on the number of agents and debate rounds configured.
+
+## Configuring Experiments
+
+You can customize the experiments by adjusting parameters in the configuration files or directly in the scripts:
+
+- **Masking Rates**: Set the percentage of words to mask during agent communication.
+- **Network Topologies**: Choose between fully connected, fully disconnected, random, and scale-free networks.
+- **Number of Agents**: Modify the number of agents participating in the simulations.
+- **Debate Rounds**: Change the number of communication rounds between agents.
