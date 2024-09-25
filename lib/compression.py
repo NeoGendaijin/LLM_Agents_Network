@@ -8,18 +8,33 @@ class TextCompressor:
         # Split sentence into words
         words = input_string.split()
 
-        # calculate the number of words to mask
+        # Calculate the number of words to mask
         num_words_to_mask = int(len(words) * self.compression_rate)
 
-        # randomly select words to mask
+        # Randomly select words to mask
         indices_to_mask = random.sample(range(len(words)), num_words_to_mask)
 
-        # mask the selected words
+        # Mask the selected words
         for index in indices_to_mask:
-            words[index] = '[mask]'
+            words[index] = '[***]'
 
-        # join the words back into a sentence
-        compressed_string = ' '.join(words)
+        # Combine adjacent masks
+        compressed_words = []
+        i = 0
+        while i < len(words):
+            if words[i] == '[***]':
+                # Count consecutive masks
+                consecutive_masks = 1
+                while i + consecutive_masks < len(words) and words[i + consecutive_masks] == '[***]':
+                    consecutive_masks += 1
+                compressed_words.append('[***]')
+                i += consecutive_masks
+            else:
+                compressed_words.append(words[i])
+                i += 1
+
+        # Join the words back into a sentence
+        compressed_string = ' '.join(compressed_words)
 
         return compressed_string
 
