@@ -15,19 +15,20 @@ class TextCompressor:
         indices_to_mask = random.sample(range(len(words)), num_words_to_mask)
 
         # Mask the selected words
+        mask = '[*]'
         for index in indices_to_mask:
-            words[index] = '[***]'
+            words[index] = mask
 
         # Combine adjacent masks
         compressed_words = []
         i = 0
         while i < len(words):
-            if words[i] == '[***]':
+            if words[i] == mask:
                 # Count consecutive masks
                 consecutive_masks = 1
-                while i + consecutive_masks < len(words) and words[i + consecutive_masks] == '[***]':
+                while i + consecutive_masks < len(words) and words[i + consecutive_masks] == mask:
                     consecutive_masks += 1
-                compressed_words.append('[***]')
+                compressed_words.append(mask)
                 i += consecutive_masks
             else:
                 compressed_words.append(words[i])
