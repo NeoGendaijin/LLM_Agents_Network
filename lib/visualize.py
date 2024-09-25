@@ -19,9 +19,9 @@ from pathlib import Path
 from matplotlib.patches import Patch  # Add this import
 
 ### Single simulation plot
-def accuracy_repartition(network_responses : pd.DataFrame, 
-                         graph_name : str, 
-                         number_agents : int, 
+def accuracy_repartition(network_responses : pd.DataFrame,
+                         graph_name : str,
+                         number_agents : int,
                          res_dir_path : Path) -> None:
     '''
         Plot the frequency of accuracy for each question on each
@@ -72,12 +72,12 @@ def accuracy_repartition(network_responses : pd.DataFrame,
     return
 
 def consensus_repartition(consensus_df: pd.DataFrame, res_dir_path: Path, graph_colors: dict[str, str], graph_names: dict[str,str]) -> None:
-    ''' Save the combined consensus repartition in res_dir_path location. The program creates separate .png images and .csv files. 
+    ''' Save the combined consensus repartition in res_dir_path location. The program creates separate .png images and .csv files.
     res_dir_path should lead to a directory, not to a file.
     '''
     # Ensure the directory exists
     Path(res_dir_path).mkdir(parents=True, exist_ok=True)
-    
+
     # Save CSV
     consensus_df.to_csv(res_dir_path / 'consensus.csv', mode='w', sep=',', index=False)
 
@@ -88,8 +88,7 @@ def consensus_repartition(consensus_df: pd.DataFrame, res_dir_path: Path, graph_
 
     # Plot for correct_prop
     plt.figure(figsize=(12, 8))
-    sns.histplot(consensus_correct, x="correct_prop", color=graph_colors['scale_free_correct_hub'], stat='probability', alpha=0.6, label='Correct')
-    sns.histplot(consensus_incorrect, x="correct_prop", color=graph_colors['scale_free_incorrect_hub'], stat='probability', alpha=0.6, label='Incorrect')
+    sns.histplot(consensus_correct, x="correct_prop", color=graph_colors['scale_free'], stat='probability', alpha=0.6, label='Correct')
     plt.title("Proportion of Agents Correct per Question", fontsize=24)
     plt.xlabel("Proportion of Agents Correct", fontsize=20)
     plt.ylabel("Relative Frequency", fontsize=28)
@@ -103,8 +102,7 @@ def consensus_repartition(consensus_df: pd.DataFrame, res_dir_path: Path, graph_
 
     # Plot for simpson
     plt.figure(figsize=(12, 8))
-    sns.histplot(consensus_correct, x="simpson", color=graph_colors['scale_free_correct_hub'], stat='probability', alpha=0.5, label='Correct')
-    sns.histplot(consensus_incorrect, x="simpson", color=graph_colors['scale_free_incorrect_hub'], stat='probability', alpha=0.5, label='Incorrect')
+    sns.histplot(consensus_correct, x="simpson", color=graph_colors['scale_free'], stat='probability', alpha=0.5, label='Correct')
     plt.title(graph_names[network_type].replace("\n", " "), fontsize=28)
     plt.xlabel("Simpson Index $\\lambda$", fontsize=28)
     plt.ylabel("Relative Frequency", fontsize=28)
@@ -197,11 +195,11 @@ def accuracy_vs_agent_number(network_responses_path: Path,
     '''
     network_responses_df = pd.read_csv(network_responses_path)
     network_responses_df = network_responses_df.query('round == 2')
-    
+
     err_palette = {"color": "black"}
 
     plt.figure(figsize=(12, 8))
-    sns.pointplot(data = network_responses_df, 
+    sns.pointplot(data = network_responses_df,
                  x='size', y='correct',
                  errorbar=("ci", 95),
                  err_kws=err_palette,
@@ -245,7 +243,7 @@ def accuracy_vs_network(input_file_path: str, output_dir: str, human_readable_la
     ''' Plot the accuracy vs bias comparison between graphs. The program creates a .png image and saves it to the output directory. Additionally, it saves the accuracy and standard error for each csv file into a new csv file. '''
 
     results_df = pd.DataFrame(columns=['network', 'accuracy', 'standard_error'])
-    
+
     # Read all the CSVs
     csv_files = glob.glob(input_file_path, recursive=True)
     for csv_file in csv_files:
@@ -269,21 +267,20 @@ def accuracy_vs_network(input_file_path: str, output_dir: str, human_readable_la
     results_df.to_csv(results_path, index=False)
 
     # Define categories for unbiased and biased networks
-    unbiased_networks = ['scale_free_unbiased', 'random', 'fully_connected', 'fully_disconnected']
-    biased_networks = ['scale_free_correct_hub', 'scale_free_incorrect_hub', 'scale_free_correct_edge', 'scale_free_incorrect_edge', 'scale_free_unbiased']
+    unbiased_networks = ['scale_free', 'random', 'fully_connected', 'fully_disconnected']
 
     def plot_accuracy_vs_network(results_df, networks, title, file_name, label_modifier=None):
         filtered_df = results_df[results_df['network'].isin(networks)]
         network_colors = [graph_colors.get(network, 'gray') for network in filtered_df['network']]
-        
+
         plt.figure(figsize=(12, 8))
-        
+
         bars = plt.bar(
-            filtered_df['network'], 
-            filtered_df['accuracy'] * 100, 
-            yerr=filtered_df['standard_error'] * 100, 
-            capsize=5, 
-            color=network_colors, 
+            filtered_df['network'],
+            filtered_df['accuracy'] * 100,
+            yerr=filtered_df['standard_error'] * 100,
+            capsize=5,
+            color=network_colors,
             ecolor=(0, 0, 0, 0.3)
         )
 
@@ -299,21 +296,21 @@ def accuracy_vs_network(input_file_path: str, output_dir: str, human_readable_la
             else:
                 bar.set_facecolor((*bar.get_facecolor()[:3], 0.5))
                 bar.set_hatch('')
-        
+
         plt.xlabel('Network Type', fontsize=20)
         plt.ylabel('Accuracy (%)', fontsize=20)
         plt.xticks(fontsize=16)
         plt.yticks(fontsize=16)
         plt.title(title, fontsize=24)
-        
+
         # Modify labels if a modifier function is provided
         if label_modifier:
             labels = [label_modifier(human_readable_labels.get(network, network)) for network in filtered_df['network']]
         else:
             labels = [human_readable_labels.get(network, network) for network in filtered_df['network']]
-        
+
         plt.xticks(range(len(filtered_df['network'])), labels)
-        
+
         plt.tight_layout()
         plt.savefig(Path(output_dir) / file_name, dpi=300, bbox_inches='tight')
         plt.close()
@@ -325,15 +322,6 @@ def accuracy_vs_network(input_file_path: str, output_dir: str, human_readable_la
         'Accuracy vs Network Type',
         'accuracy_vs_network.png',
         label_modifier=lambda x: 'Scale-Free' if 'Unbiased' in x else x
-    )
-
-    # Plot for biased networks
-    plot_accuracy_vs_network(
-        results_df,
-        biased_networks,
-        'Accuracy vs Bias Type in Scale-Free Networks',
-        'accuracy_vs_bias.png',
-        label_modifier=lambda x: 'Unbiased' if 'Scale-Free' in x else x
     )
 
 def accuracy_vs_round(agent_responses_path: str, output_dir: str, human_readable_labels: dict[str, str], graph_colors: dict[str, str]) -> None:
@@ -396,7 +384,7 @@ def accuracy_vs_round(agent_responses_path: str, output_dir: str, human_readable
         plt.yticks(fontsize=16)
 
         # Set the custom order for the legend items
-        custom_legend_order = ['Fully Connected', 'Fully Disconnected', 'Random','Scale-Free (Unbiased)', 'Scale-Free (Correct Bias Hub)', 'Scale-Free (Correct Bias Edge)',
+        custom_legend_order = ['Fully Connected', 'Fully Disconnected', 'Random','Scale-Free',
                             'Scale-Free (Incorrect Bias Hub)', 'Scale-Free (Incorrect Bias Edge)']
         custom_legend_patches_sorted = sorted(custom_legend_patches, key=lambda patch: custom_legend_order.index(patch.get_label()))
 
@@ -419,7 +407,7 @@ def correct_prop_vs_network(input_file_path: str, output_dir: str, human_readabl
         results_df = pd.concat([results_df if not results_df.empty else None, pd.DataFrame({'network': [Path(csv_file).parent.name], "correct_prop": mean, 'standard_error': sem})], ignore_index=True)
 
     results_path = Path(output_dir) / "correct_prop_and_network_type.csv"
-    custom_order = ['fully_connected','fully_disconnected', 'random', 'scale_free_unbiased', 'scale_free_incorrect_hub', 'scale_free_incorrect_edge', 'scale_free_correct_hub', 'scale_free_correct_edge']
+    custom_order = ['fully_connected','fully_disconnected', 'random', 'scale_free']
     results_df['network_order'] = results_df['network'].apply(lambda x: custom_order.index(x))
     results_df = results_df.sort_values(by='network_order')
     results_df.to_csv(results_path, index=False)
@@ -476,14 +464,14 @@ def consensus_table(input_file_path: str, output_dir: str):
         incorrect = df.query("network_correct == False")['simpson'].mean()
 
         data_res.append([network, overall, correct, incorrect])
-    
-    res = pd.DataFrame(columns= ["network_type", 
-                                 "overall_consensus", 
-                                 "correct_response_consensus", 
+
+    res = pd.DataFrame(columns= ["network_type",
+                                 "overall_consensus",
+                                 "correct_response_consensus",
                                  "incorrect_response_consensus"],
                         data = data_res)
     res.to_csv(Path(output_dir) / "consensus_table.csv", index = False)
-        
+
 def neighbours_accuracy(input_file_path: str, output_file_path: str, graph_colours: dict[str, str]) -> None:
     csv_files = glob.glob(input_file_path, recursive=True)
     csv_files = [file for file in csv_files if "disconnected" not in file]
@@ -502,7 +490,7 @@ def neighbours_accuracy(input_file_path: str, output_file_path: str, graph_colou
     df = df.dropna()
 
     # Create the lmplot with Seaborn
-    custom_palette = {True: graph_colours['scale_free_correct_hub'], False: graph_colours['scale_free_incorrect_hub']}
+    custom_palette = {True: graph_colours['scale_free'], False: graph_colours['scale_free']}
     lm = sns.lmplot(
         data=df,
         x='prop_correct_neighbors',
@@ -610,8 +598,8 @@ def created_gifs(parsed_agent_response: pd.DataFrame,
                 text_size = 16
                 text_weight = 'bold'
 
-                plt.text(text_x, text_y, round_text, transform=plt.gca().transAxes, fontsize=text_size, 
-                        fontname=text_font, fontweight=text_weight, color=text_color, 
+                plt.text(text_x, text_y, round_text, transform=plt.gca().transAxes, fontsize=text_size,
+                        fontname=text_font, fontweight=text_weight, color=text_color,
                         verticalalignment='top')
 
                 image_path = res_repertory_repeat / f'{num_agents}_q{question}_r{round_+1}.png'

@@ -25,6 +25,15 @@ class Agent:
         elif "gpt-3.5-turbo" in model:
             llm = ChatOpenAI(
                 max_tokens=200,
+                temperature=0.7,
+                request_timeout=60,
+                max_retries=5
+            )
+        elif "gpt-4o-mini" in model:
+            llm = ChatOpenAI(
+                model="gpt-4o-mini",
+                temperature=0.7,
+                max_tokens=2000,
                 request_timeout=60,
                 max_retries=5
             )

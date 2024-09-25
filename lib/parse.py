@@ -28,6 +28,26 @@ def parse_response_mmlu(response: str) -> Optional[str]:
 
     return answer
 
+def parse_reason_and_answer(response_string):
+    """
+    Parse the response string to extract reasoning and answer.
+
+    Args:
+    response_string (str): The input string containing REASONING and ANSWER tags.
+
+    Returns:
+    tuple: A tuple containing (reasoning, answer)
+    """
+    # Extract reasoning
+    reasoning_match = re.search(r'<REASONING>(.*?)</REASONING>', response_string, re.DOTALL)
+    reasoning = reasoning_match.group(1).strip() if reasoning_match else ""
+
+    # Extract answer
+    answer_match = re.search(r'<ANSWER>(.*?)</ANSWER>', response_string, re.DOTALL)
+    answer = answer_match.group(1).strip() if answer_match else ""
+
+    return reasoning, answer
+
 def parse_output_mmlu(output_dir_path: Path, res_file_path: Path) -> pd.DataFrame:
     """
         Parse agent response csv files to analyse which answer is correct and which is not.
@@ -40,7 +60,7 @@ def parse_output_mmlu(output_dir_path: Path, res_file_path: Path) -> pd.DataFram
     # Delete previous file and write headers
     with open(res_file_path, mode="w+") as f:
         f.write('network_number|agent_id|round|question_number|repeat|parsed_response|correct_response|correct|bias\n')
-    
+
     for csv_file_to_parse in csv_files_to_parse:
         # load data from file name
         string_name_splited = csv_file_to_parse.name.split(sep = '.')[0].split(sep = '_')
@@ -56,13 +76,13 @@ def parse_output_mmlu(output_dir_path: Path, res_file_path: Path) -> pd.DataFram
         df['correct'] = df['parsed_response'] == df['correct_response']
 
         # If parsed response is not in the possible answers, we set parsed response as X
-        df['parsed_response'] = df['parsed_response'].apply(lambda string: 
-                                                            string if string in ['A', 'B', 'C', 'D'] 
+        df['parsed_response'] = df['parsed_response'].apply(lambda string:
+                                                            string if string in ['A', 'B', 'C', 'D']
                                                             else 'X')
         # We harmonize bias column
         if "correct" in csv_file_to_parse.name :
-            df['bias'] = df['bias'].apply(lambda bias : 
-                                        bias if bias in ['correct', 'incorrect'] 
+            df['bias'] = df['bias'].apply(lambda bias :
+                                        bias if bias in ['correct', 'incorrect']
                                         else "unbiased")
         else:
             df['bias'] = "unbiased"
@@ -91,17 +111,17 @@ def get_network_responses(parsed_agent_response: pd.DataFrame | Path, res_file_p
         df = parsed_agent_response
     else:
         raise ValueError("parsed_agent_response should be a pandas DataFrame or a Path")
-    
+
     # Biased node are not considered for the network answer.
     df = parsed_agent_response.query("bias == 'unbiased'")
 
     # We count the number of responses of each type (A, B, C, D, X) for each question
     responses: pd.DataFrame = df.groupby(['network_number',
                                             'round',
-                                            'question_number', 
-                                            'parsed_response', 
+                                            'question_number',
+                                            'parsed_response',
                                             'correct',
-                                            'repeat'], 
+                                            'repeat'],
                                             as_index = False).size()
 
     # We add a random value at each line. This allow us to randomly select the answer if to answers have
@@ -113,7 +133,7 @@ def get_network_responses(parsed_agent_response: pd.DataFrame | Path, res_file_p
     # We select the network answer at each question by selecting the most given answer at each question.
     responses = responses.sort_values(['network_number',
                                        'round',
-                                     'question_number', 
+                                     'question_number',
                                     'size',
                                     'rd_number',
                                     'repeat'],
@@ -123,7 +143,7 @@ def get_network_responses(parsed_agent_response: pd.DataFrame | Path, res_file_p
                                    'round',
                                     'question_number',
                                     'repeat']).nth(0)
-    
+
     responses = responses[['network_number', 'round', 'question_number', 'repeat', 'parsed_response', 'correct']]
     responses.to_csv(res_file_path, mode='w', sep = '|', index=False)
 

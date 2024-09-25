@@ -34,9 +34,12 @@ class Memory:
         elif "gpt-3.5-turbo" in model:
             embedding_size = 1536
             embedding_fn = OpenAIEmbeddings(model="gpt-3.5-turbo-0125")
+        elif "gpt-4o-mini" in model:
+            embedding_size = 1536
+            embedding_fn = OpenAIEmbeddings(model="gpt-4o-mini")
         else:
             raise ValueError(f"Unknown model: {model}")
-        
+
         self.llm = Ollama(model=model, num_predict=150)
         self.vectorstore = FAISS(embedding_fn, faiss.IndexFlatL2(embedding_size), InMemoryDocstore({}), {})
         self.memory_stream: List[Document] = []

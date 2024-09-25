@@ -1,12 +1,11 @@
 # 🕸️ Problem Solving in Language Model Networks
-
-This repository contains the code for the paper "Problem Solving in Language Model Networks" which was accepted at the [2024 Conference on Artificial Life](https://2024.alife.org/).
+This is a forked branch based on https://github.com/tsukuba-websci/PSiLMN. Featured to investigate the relation information compression and network of LLM agents.
+The original code is based on the paper "Problem Solving in Language Model Networks" which was accepted at the [2024 Conference on Artificial Life](https://2024.alife.org/).
 
 ## Running the Experiment
 
 ### Prerequisites
 
-- Install [Poetry](https://python-poetry.org/) for managing python packages.
 - Create an OpenAI API key for using GPT-3.5-Turbo.
 - Create a Hugging Face token for downloading MMLU dataset from Hugging Face.
 
@@ -17,7 +16,7 @@ Create a `.env` file in the root directory and add your OpenAI API key and Huggi
 OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>
 HF_TOKEN=<YOUR_HF_TOEN>
 ```
-Install the required Python packages with 
+Install the required Python packages with
 ```
 poetry install
 ```

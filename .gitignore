@@ -6,6 +6,9 @@
 *.csv
 *.gif
 /output
+/outputs
+/output*/
+/notebooks
 temp.py
 *.png
 !/experiment/input/**/*.png
