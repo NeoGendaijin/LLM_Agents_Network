@@ -27,7 +27,7 @@ dotenv.load_dotenv("../.env")
 hf_token = os.getenv("HF_TOKEN")
 
 NUM_NETWORKS = 3
-NUM_QUESTIONS = 5
+NUM_QUESTIONS = 10
 NUM_ROUNDS = 4
 NUM_REPEATS = 2
 
@@ -53,7 +53,8 @@ async def test_mmlu(network_num: int, network_type: str, output_file: Path, comp
 
     # Load the MMLU dataset
     #dataset = load_dataset("lukaemon/mmlu", "high_school_mathematics", revision="3b5949d968d1fbc3facce39769ba00aa13404ffc", trust_remote_code=True, split="test", token = hf_token).to_pandas()
-    dataset = load_dataset("cais/mmlu", "formal_logic", split="test", token = hf_token).to_pandas()
+    #dataset = load_dataset("cais/mmlu", "formal_logic", split="test", token = hf_token).to_pandas()
+    dataset = load_dataset("cais/mmlu", "college_mathematics", split="test", token = hf_token).to_pandas()
     dataset = reshape_dataset(dataset)
     dataset = dataset.head(NUM_QUESTIONS)
 
