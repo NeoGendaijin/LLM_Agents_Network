@@ -274,7 +274,7 @@ def calculate_cost_per_round(output_csv='output.csv'):
 
         average_messages = (calculate_average_message_count(f'input/{network_type}'))
 
-        agent_max_tokens = 200
+        agent_max_tokens = 2000
         network_max_tokens = average_messages * agent_max_tokens
 
         results.append((network_type, average_messages, network_max_tokens))

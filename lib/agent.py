@@ -9,6 +9,7 @@ from langchain_community.llms import Ollama
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 import random
+import tiktoken
 import os
 
 load_dotenv()
@@ -29,6 +30,7 @@ class Agent:
                 request_timeout=60,
                 max_retries=5
             )
+            self.tokenizer = tiktoken.encoding_for_model("gpt-3.5-turbo")  # Tokenizer for GPT-3.5
         elif "gpt-4o-mini" in model:
             llm = ChatOpenAI(
                 model="gpt-4o-mini",
@@ -37,6 +39,7 @@ class Agent:
                 request_timeout=60,
                 max_retries=5
             )
+            self.tokenizer = tiktoken.encoding_for_model("gpt-4o-mini")  # Tokenizer for GPT-4o-mini
         else:
             raise ValueError(f"Unknown model: {model}")
 
@@ -57,6 +60,10 @@ class Agent:
 
     def chain(self, prompt: PromptTemplate) -> LLMChain:
         return LLMChain(llm=self.llm, prompt=prompt, verbose=self.verbose)
+
+    def count_tokens(self, text: str) -> int:
+        """Count the number of tokens in the given text."""
+        return len(self.tokenizer.encode(text))
 
     def interview(self, question: str, correspodee: str = "Interviewer") -> str:
         """Generate a response to a given prompt."""
@@ -93,7 +100,8 @@ class Agent:
         )
 
         response = await self.chain(prompt=prompt).ainvoke(kwargs)
-        return response["text"].strip()
+        input_tokens = self.count_tokens(prompt.format(**kwargs))
+        return response["text"].strip(), input_tokens
 
 def fake_hobby():
     hobbies = ["Reading", "Hiking", "Painting", "Cooking", "Gaming", "Traveling", "Photography", "Gardening", "Yoga", "Dancing"]

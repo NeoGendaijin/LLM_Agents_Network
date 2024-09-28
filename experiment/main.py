@@ -26,10 +26,10 @@ import dotenv
 dotenv.load_dotenv("../.env")
 hf_token = os.getenv("HF_TOKEN")
 
-NUM_NETWORKS = 3
-NUM_QUESTIONS = 10
-NUM_ROUNDS = 4
-NUM_REPEATS = 2
+NUM_NETWORKS = 1
+NUM_QUESTIONS = 1
+NUM_ROUNDS = 2
+NUM_REPEATS = 1
 
 assert(NUM_NETWORKS <= 3)
 
@@ -107,18 +107,18 @@ def assign_biases(network: Network, bias: Bias):
         network.dict[id].bias = bias.type if id in biased_nodes else "none"
 
 async def write_responses_to_csv(file_path: str, responses: list):
-
     file_exists = os.path.exists(file_path)
     file_is_empty = not os.path.getsize(file_path) if file_exists else True
 
     async with aiofiles.open(file_path, mode='a', newline='') as file:
         if file_is_empty:
-            header = "agent_id|round|question_number|response|correct_response|bias\n"
+            header = "agent_id|round|question_number|response|correct_response|bias|input_tokens\n"
             await file.write(header)
 
         for response_row in responses:
             csv_line = '|'.join([str(item) for item in response_row]) + '\n'
             await file.write(csv_line)
+
 
 @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6), reraise=True)
 async def get_response(agent: Agent, input: str, round: int):
@@ -133,11 +133,12 @@ async def get_response(agent: Agent, input: str, round: int):
 
     # Get a new response from the agent only if the agent is unbiased or if the agent is biased and it is the first round
     if (agent.bias == "none") or (agent.bias != "none" and round == 0):
-        response = await agent.ainterview(input)
+        response, input_tokens = await agent.ainterview(input)
     else:
         response = agent.response
+        input_tokens = agent.count_tokens(input)
 
-    return agent.id, response.replace("|", " ")
+    return agent.id, response.replace("|", " "), input_tokens
 
 def split_response(response: str):
     """
@@ -173,7 +174,7 @@ async def ask_agents_and_write_responses(network, unbiased_agent_input, biased_a
         ))
 
         # Assign responses to agents
-        for agent_id, response in agent_responses:
+        for agent_id, response, input_tokens in agent_responses:
             network.dict[agent_id].response = response
 
         # Gather and handle neighbor responses for each agent
@@ -201,9 +202,10 @@ async def ask_agents_and_write_responses(network, unbiased_agent_input, biased_a
 
         # Prepare data for CSV writing
         round_info = [
-            [agent.id, round, question_number, agent.response, correct_response, agent.bias]
-            for _, agent in network.dict.items()
+            [agent.id, round, question_number, agent.response, correct_response, agent.bias, input_tokens]
+            for agent_id, response, input_tokens in agent_responses
         ]
+
 
         await write_responses_to_csv(output_file, round_info)
 
