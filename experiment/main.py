@@ -186,8 +186,10 @@ async def ask_agents_and_write_responses(network, unbiased_agent_input, biased_a
             for neighbor in neighbors:
                 # print("Called:", compressor.compress(network.dict[neighbor].response))
                 reasoning, answer = split_response(network.dict[neighbor].response)
-                compressed_reasoning = compressor.compress(reasoning)
-                neighbors_responses.append(f"Agent {neighbor}: {compressed_reasoning}")
+                response = compressor.compress(reasoning)
+                if compression_rate == 1.0: # If compression rate is 1.0, let's give him the answer
+                    response = answer
+                neighbors_responses.append(f"Agent {neighbor}: {response}")
 
             # Concatenate responses and ensure they fit within max_tokens
             neighbor_response = "\n".join(neighbors_responses)
