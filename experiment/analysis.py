@@ -53,7 +53,9 @@ def main(agent_responses_path: str, output_analysis_path: str):
 
     visu.consensus_table(f"{RESULTS_PATH}**/consensus.csv", RESULTS_PATH)
 
-    analyse.calculate_cost_per_round(f"{RESULTS_PATH}/cost_per_round.csv")
+    analyse.calculate_average_tokens(AGENT_RESPONSES_PATH, f"{RESULTS_PATH}/")
+
+    analyse.calculate_cost_per_round(f"{RESULTS_PATH}/cost_per_round.csv", f"{RESULTS_PATH}/")
 
     pass
 

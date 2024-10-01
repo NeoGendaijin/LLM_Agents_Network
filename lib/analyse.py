@@ -8,6 +8,7 @@ from typing import Tuple
 import lib.parse as parse
 import lib.visualize as visu
 import networkx as nx
+import glob
 import os
 import csv
 
@@ -231,6 +232,26 @@ def calculate_proportion_neighbours_correct(parsed_agent_response: pd.DataFrame,
 
     return df_final
 
+def calculate_average_tokens(input_dir: str, output_dir: str):
+    # すべてのCSVファイルを取得
+    csv_files = glob.glob(f"{input_dir}/**/*.csv", recursive=True)
+
+    all_data = []
+    for file in csv_files:
+        df = pd.read_csv(file, sep='|')
+        all_data.append(df)
+
+    # 全データを結合
+    combined_df = pd.concat(all_data, ignore_index=True)
+
+    # 各試行（network_type, network_num, repeat_num, question_number）ごとに平均を計算
+    # 必要に応じてグループ化のキーを調整してください
+    average_tokens = combined_df.groupby(['agent_id'])['input_tokens'].mean()
+
+    # 必要に応じて結果を保存
+    average_tokens.to_csv(f"{output_dir}/average_tokens.csv", sep='|')
+
+
 def calculate_average_message_count(graphml_folder):
     message_counts = []
 
@@ -251,12 +272,13 @@ def calculate_average_message_count(graphml_folder):
 
     return average_messages
 
-def calculate_cost_per_round(output_csv='output.csv'):
+def calculate_cost_per_round(output_csv='output_cost.csv', results_path='./'):
     '''
     Calculate the average number of inputs and tokens per round for each network type.
 
     Args:
         output_csv: The path to the output CSV file.
+        average_tokens_csv: The path to the average tokens CSV file.
 
     Returns:
         None
@@ -265,19 +287,36 @@ def calculate_cost_per_round(output_csv='output.csv'):
     network_types = ['fully_connected', 'fully_disconnected', 'random', 'scale_free']
     results = []
 
+    # Load the average tokens per agent from CSV
+    average_tokens_csv= results_path + 'average_tokens.csv'
+    if not os.path.exists(average_tokens_csv):
+        print(f"Average tokens CSV not found: {average_tokens_csv}")
+        return
+
+    avg_tokens_df = pd.read_csv(average_tokens_csv, sep='|')
+
+    # Compute the overall average tokens across all agents
+    overall_avg_tokens = avg_tokens_df['input_tokens'].mean()
+    print(f"Overall Average Tokens per message: {overall_avg_tokens}")
+
     for network_type in network_types:
-        graph_files = list(Path(f'input/{network_type}').glob('*.graphml'))
+        graph_folder = f'input/{network_type}'
+        graph_files = list(Path(graph_folder).glob('*.graphml'))
 
         if not graph_files:
             print(f"No GraphML files found for network type: {network_type}")
             continue
 
-        average_messages = (calculate_average_message_count(f'input/{network_type}'))
+        average_messages = calculate_average_message_count(graph_folder)
 
-        agent_max_tokens = 200
-        network_max_tokens = average_messages * agent_max_tokens
+        # Calculate average tokens per message
+        # Assuming that each message corresponds to one input token count
+        average_tokens_per_message = overall_avg_tokens
 
-        results.append((network_type, average_messages, network_max_tokens))
+        # Calculate total tokens per round
+        total_tokens_per_round = average_messages * average_tokens_per_message
+
+        results.append((network_type, average_messages, total_tokens_per_round))
 
     # Write the results to a CSV file
     with open(output_csv, mode='w', newline='') as file:
@@ -285,7 +324,7 @@ def calculate_cost_per_round(output_csv='output.csv'):
         writer.writerow(['network', 'inputs_per_round', 'tokens_per_round'])
         writer.writerows(results)
 
-    pass
+    print(f"Cost per round calculated and saved to {output_csv}")
 
 def calculate_consensus_per_question(parsed_agent_response: pd.DataFrame, network_responses_df: pd.DataFrame):
     '''
