@@ -145,8 +145,8 @@ def split_response(response: str):
     response を reasoning と answer に分割します。
     例: "reasoningの部分... Therefore, the correct answer is (C) 50." -> ("reasoningの部分...", "(C) 50")
     """
-    # (A|B|C|D) に続く数字をキャプチャ
-    pattern = re.compile(r'\(([ABCD])\)\s*(\d+)', re.IGNORECASE)
+    # (A|B|C|D) をキャプチャ
+    pattern = re.compile(r'\(([ABCD])\)\s*(.*)', re.IGNORECASE)
 
     # すべてのマッチを取得
     matches = list(pattern.finditer(response))
